@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
+</head>
+<body>
+    <section id="mainPage" style="display:inline-flex; scrollbar-color: black;">
+    <div id="settings" style="vertical-align: middle; height: fit-content;">
+    <p class="actuallyButton" style="float: inline-start; border-color: white; border-style:solid; width: fit-content;border-width: 1px; padding: 6px;border-radius: 10px;" onclick="planetEdit();"> Add Planet</p>
+    <center style="float: inline-end; vertical-align: middle;">
+    <label style="font-size: 20px;">Speed: </label>
+<input type="range" min="1" max="3.154e+8" id="speed" value="1" step="1" id="u">
+</center>
+</div>
+    <canvas id="myCanvas" style="border:1px solid"></canvas>
+    </section>
+<section id="createPage" style="display: none; width: 100%;">
+<center>
+<h1 style="font-size: 40px;">Create New Planet</h1>
+<br>
+<label class="p">Name: </label>
+<input id = "Planet.name.input" class="s">
+<br>
+<label class="p">Radius: </label>
+<input id = "Planet.radius.input" class="s">
+<label class="p">in Thousand Metres</label>
+<br>
+<label class="p">Mass: </label>
+<input id = "Planet.mass.input" class="s">
+<label class="p">in Septilion Metres</label>
+<br>
+<label class="p">Orbit: </label>
+<input id = "Planet.orbit.input" class="s">
+<label class="p">in Giga Metres</label>
+<button id = "Add.planet" onclick="addPlanet()">Add Planet</button>
+</center>
+</section>
+</body>
+
+<style>
+body{
+    background-color: black;
+    color: white;
+}
+.actuallyButton{
+    vertical-align:middle;
+    font-size: 20px;
+}
+.s{
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+.p{
+    font-size: 20px;
+}
+</style>
+<script>
+
+//Variables
+const G = 6.67 * 10 ** -11;
+
+const AU = 149597870700;
+
+var sFactor = 1;
+
+var starProperties = {
+    mass: 2 * 10 ** 30,
+    radius: 40,
+    temperature: 0
+};
+
+var planetName = [
+
+];
+
+var planetRadius = [
+  
+];
+
+var planetMass = [
+
+];
+
+var planetOrbit = [
+
+];
+
+var theta = [
+
+];
+
+var xi = [
+
+];
+
+var yi = [
+
+];
+
+var xip = [
+
+];
+
+var yip = [
+
+];
+
+var xr = [
+
+];
+
+var yr = [
+
+];
+
+var gFactor = [
+
+];
+
+var assumed_x = [
+
+];
+
+var assumed_y = [
+
+];
+
+var distFromAllPlanets = [
+
+];
+
+var n = 0;
+
+var angle = 0;
+
+const f = 105/360000;
+
+var sumOfMasses = 0;
+//Functions.normal
+
+function planetEdit(){
+document.getElementById("mainPage").style.display = "none";
+document.getElementById("createPage").style.display = "inline-block";
+};
+function addPlanet(){
+    n += 1
+    planetName.push(document.getElementById("Planet.name.input").value);
+    planetRadius.push(document.getElementById("Planet.radius.input").value);
+    planetMass.push(document.getElementById("Planet.mass.input").value);
+    planetOrbit.push(document.getElementById("Planet.orbit.input").value);
+    theta.push(0);
+    document.getElementById("mainPage").style.display = "inline-block";
+    document.getElementById("createPage").style.display = "none"; 
+};
+
+function astronomicalUnits(e){
+return e / AU
+};
+
+//Inital
+const canvas = document.getElementById("myCanvas") 
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+ctx.strokeStyle = "white";
+document.getElementById("speed").width = window.innerWidth;
+var assumed_centre = {
+    x: canvas.width/2,
+    y: canvas.height/2
+};
+//Functions.canvas
+function text(d){
+ctx.font='10px sans-serif';
+ctx.fillStyle= "white";
+ctx.fillText(planetName[d], xi[d] + planetRadius[d], yi[d] + planetRadius[d], planetRadius[d]);
+};
+
+function drawPlanet(m){
+for(q = 0; q < planetMass.length; q += 1){
+    distFromAllPlanets[q] = Math.sqrt(((xi[m] - xi[q]) ** 2) + ((yi[m] - yi[q]) ** 2)); 
+};
+for(kp = 0; kp < planetMass.length; kp += 1){
+    sumOfMasses += planetMass[kp] * 10 ** 6
+};    
+    sumOfMasses += starProperties.mass
+    sumOfMasses -= planetMass[m] * 10 ** 6
+    gFactor[m] = 2 * Math.PI * Math.sqrt(((planetOrbit[m] * 10 ** 9) ** 3)/(G * sumOfMasses)) 
+    sFactor = document.getElementById("speed").value
+    theta[m] += f * sFactor * 1 / gFactor[m]
+    ctx.beginPath();
+    assumed_x[m] = assumed_centre.x + (planetOrbit[m] * Math.cos(theta[m]))
+    assumed_y[m] = assumed_centre.y + (planetOrbit[m] * Math.sin(theta[m]))
+    xip[m] = assumed_centre.x + (planetOrbit[m] * Math.cos(theta[m] - (Math.PI * planetRadius[m])/180))
+    yip[m] = assumed_centre.y + (planetOrbit[m] * Math.sin(theta[m] - (Math.PI * planetRadius[m])/180))
+    xi[m] = assumed_x[m]
+    yi[m] = assumed_y[m] 
+    ctx.arc(xi[m], yi[m], planetRadius[m], 0, 2 *  Math.PI);
+    ctx.stroke();
+    text(m);
+    console.log(sumOfMasses)
+};
+
+function drawPath(j){
+ctx.beginPath();
+ctx.moveTo(xi[j], yi[j]);
+ctx.bezierCurveTo(xi[j] ,yi[j] ,xip[j] ,yip[j] , xip[j], yip[j]);
+ctx.stroke();
+
+};
+
+function drawStar(){
+    angle += 0.001
+    ctx.beginPath();
+    ctx.arc(canvas.width/2 , canvas.height/2 , starProperties.radius, 0, 2 *  Math.PI);
+    ctx.stroke();
+};
+
+function animate(){    
+    requestAnimationFrame(animate)
+    drawStar();
+for(let i = 0; i < planetOrbit.length; i+=1){
+    ctx.clearRect(-planetRadius[i] + xi[i] - 1,-planetRadius[i] + yi[i] - 1, 2 * planetRadius[i] + 2, 2 * planetRadius[i] + 2);
+    ctx.lineWidth= 1;
+    drawPlanet(i);
+    ctx.lineWidth= 0.5;
+    drawPath(i);
+};
+};
+
+//Run
+animate()
+
+
+</script>
+</body>
+</html>
